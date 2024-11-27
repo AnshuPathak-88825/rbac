@@ -1,31 +1,82 @@
 {
   "users": [
     {
-      "name": "Anshu Kumar asdfasdfasdf",
-      "id": "4ebc"
-    },
-    {
-      "name": "Anshu",
-      "id": "c574"
-    },
-    {
-      "id": "270a",
-      "name": "Anshu Kumar",
+      "id": "4972",
+      "name": "anshupathak",
       "email": "anshumait123@gmail.com",
-      "roleId": "22d0",
-      "status": "active"
+      "roleId": "f488",
+      "status": "inactive"
     },
     {
-      "id": "66df",
-      "name": "anshu",
-      "email": "shubhanshupathak88825@gmail.com",
-      "roleId": "6cb2",
-      "status": "inactive"
+      "id": "7ab4",
+      "name": "Anshu Kumar Pathak",
+      "email": "anshumait123@gmail.com",
+      "roleId": "fc7b",
+      "status": "Active"
+    },
+    {
+      "id": "02b2",
+      "name": "ankit",
+      "email": "asdfasdf@gmail.com",
+      "roleId": "86f0",
+      "status": "Active"
+    },
+    {
+      "id": "6ac8",
+      "name": "execute",
+      "email": "asfdadf",
+      "roleId": "d96d",
+      "status": "Active"
+    },
+    {
+      "id": "ce13",
+      "name": "asdfasdfv",
+      "email": "asdfgasdfv",
+      "roleId": "bc56",
+      "status": "Active"
     }
   ],
   "roles": [
     {
-      "id": "36cb",
+      "id": "f488",
+      "name": "Admin",
+      "permissions": [
+        "Read",
+        "Write",
+        "Delete"
+      ],
+      "customAttributes": {
+        "dashboardAccess": true,
+        "prioritySupport": false
+      }
+    },
+    {
+      "id": "fc7b",
+      "name": "Moderator",
+      "permissions": [
+        "Read",
+        "Write"
+      ],
+      "customAttributes": {
+        "dashboardAccess": true,
+        "prioritySupport": false
+      }
+    },
+    {
+      "id": "86f0",
+      "name": "Admin",
+      "permissions": [
+        "Delete",
+        "Write",
+        "Read"
+      ],
+      "customAttributes": {
+        "dashboardAccess": true,
+        "prioritySupport": false
+      }
+    },
+    {
+      "id": "d96d",
       "name": "User",
       "permissions": [
         "Read"
@@ -36,29 +87,7 @@
       }
     },
     {
-      "id": "4a7a",
-      "name": "User",
-      "permissions": [
-        "Read"
-      ],
-      "customAttributes": {
-        "dashboardAccess": true,
-        "prioritySupport": false
-      }
-    },
-    {
-      "id": "22d0",
-      "name": "User",
-      "permissions": [
-        "Read"
-      ],
-      "customAttributes": {
-        "dashboardAccess": true,
-        "prioritySupport": false
-      }
-    },
-    {
-      "id": "6cb2",
+      "id": "bc56",
       "name": "User",
       "permissions": [
         "Read"
