@@ -1,101 +1,363 @@
+"use client";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { DialogDescription } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import profile from "../../src/app/assets/image/profile.svg";
+import bin from "../../src/app/assets/image/bin.svg";
+import edit from "../../src/app/assets/image/edit.svg";
+import axios from "axios";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  type User = {
+    id: string;
+    name: string;
+    email: string;
+    roleId: string;
+    status: string;
+  };
+  type Permission = "Read" | "Write" | "Delete";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  type Role = {
+    id: string;
+    name: string;
+    permissions: Permission[];
+    customAttributes: {
+      dashboardAccess: boolean;
+      prioritySupport: boolean;
+    };
+  };
+  type FullInfo = {
+    user: User;
+    role: Role;
+  };
+
+  const [merged_info, setMerged_info] = useState<FullInfo[]>([]);
+  const [NewUser, setNewUser] = useState<string>("");
+  const [NewEmail, setNewEmail] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [EditName, setEditName] = useState("");
+  const [EditEmail, setEditEmail] = useState("");
+  const [EditRole, setEditRole] = useState("");
+  const [EditPermision, setEditPermission] = useState([]);
+  useEffect(() => {
+    fetchMergedInfo();
+  }, []);
+
+  const fetchMergedInfo = async () => {
+    try {
+      setLoading(true);
+      const usersData = await axios.get<User[]>(`http://localhost:3001/users`);
+      const rolesData = await axios.get<Role[]>(`http://localhost:3001/roles`);
+
+      const mergedData = usersData.data
+        .map((user) => {
+          const role = rolesData.data.find((role) => role.id === user.roleId);
+          return role ? { user, role } : null;
+        })
+        .filter(Boolean) as FullInfo[];
+
+      setMerged_info(mergedData);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteRoleAndUsers = async (UserId: string, RoleId: string) => {
+    try {
+      await axios.delete(`http://localhost:3001/users/${UserId}`);
+      await axios.delete(`http://localhost:3001/roles/${RoleId}`);
+      fetchMergedInfo();
+    } catch (error) {
+      console.log("Error deleting user/role:", error);
+    }
+  };
+
+  const addUser = async () => {
+    try {
+      const roleOption = {
+        name: "User",
+        permissions: ["Read"],
+        customAttributes: {
+          dashboardAccess: true,
+          prioritySupport: false,
+        },
+      };
+
+      let newRole;
+      try {
+        newRole = await axios.post<Role>(
+          "http://localhost:3001/roles",
+          roleOption
+        );
+      } catch (roleError) {
+        console.error("Error creating role:", roleError);
+        throw new Error("Failed to create role. Please try again.");
+      }
+
+      const userOption = {
+        name: NewUser,
+        email: NewEmail,
+        roleId: newRole.data.id,
+        status: "Active",
+      };
+      try {
+        const response = await axios.post<User>(
+          "http://localhost:3001/users",
+          userOption
+        );
+        console.log("User added successfully." + response.data.email);
+      } catch (userError) {
+        console.error("Error creating user:", userError);
+        throw new Error("Failed to create user. Please try again.");
+      }
+
+      setNewUser("");
+      setNewEmail("");
+      await fetchMergedInfo();
+    } catch (error) {
+      console.error("Error adding user:", error);
+    }
+  };
+  // Add function to handle editing user data
+  const editUser = async (
+    userId: string,
+    roleId: string,
+    UserInfo: User,
+    RoleInfo: Role
+  ) => {
+    try {
+      if (EditName != "") {
+        UserInfo["name"] = EditName;
+      }
+      if (EditEmail != "") {
+        UserInfo["email"] = EditEmail;
+      }
+
+      await axios.put(`http://localhost:3001/users/${userId}`, UserInfo);
+      console.log("User updated successfully.");
+      setEditName("");
+      setEditEmail("");
+      setEditPermission([]);
+      await fetchMergedInfo(); // Refresh the user list
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+  const Editstatus = async (value: string, user: User) => {
+    try {
+      user.status = value;
+      await axios.put(`http://localhost:3001/users/${user.id}`, user);
+      await fetchMergedInfo();
+      console.log("updated status successfully");
+    } catch (error) {
+      console.error("Error updating user:", error);
+
+    }
+
+
+  }
+
+  return (
+    <div className="w-full m-auto">
+      <Table>
+        <TableCaption>A list of your recent users and roles.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Account</TableHead>
+            <TableHead>Email address</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Access</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {merged_info.map((value, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <Image src={profile} alt="Profile" height={20} width={20} />
+                  <span>{value.user.name}</span>
+                </div>
+              </TableCell>
+              <TableCell>{value.user.email}</TableCell>
+              <TableCell>{value.role.name}</TableCell>
+              <TableCell>
+                {value.role.permissions.map((permission, i) => (
+                  <div key={i}>{permission}</div>
+                ))}
+              </TableCell>
+              <TableCell>
+                <Select onValueChange={(v1) => Editstatus(v1, value.user)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder={value.user.status} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Status</SelectLabel>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+              </TableCell>
+              <TableCell>
+                <div className="flex">
+                  <div
+                    className="cursor-pointer p-1"
+                    onClick={() =>
+                      deleteRoleAndUsers(value.user.id, value.role.id)
+                    }
+                  >
+                    <Image src={bin} alt="Delete" height={20} width={20} />
+                  </div>
+                  <div className="p-1 cursor-pointer">
+                    <Dialog>
+                      <DialogTrigger>
+                        <Image src={edit} alt="Edit" height={20} width={20} />
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Edit Information</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">
+                              Name
+                            </Label>
+                            <Input
+                              id="name"
+                              value={
+                                EditName === "" ? value.user.name : EditName
+                              }
+                              className="col-span-3"
+                              onChange={(e) => setEditName(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="email" className="text-right">
+                              Email
+                            </Label>
+                            <Input
+                              id="email"
+                              value={
+                                EditEmail === "" ? value.user.email : EditEmail
+                              }
+                              className="col-span-3"
+                              onChange={(e) => setNewEmail(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="Role" className="text-right">
+                              Role
+                            </Label>
+                            <Input
+                              id="role"
+                              value={
+                                EditRole === "" ? value.role.name : EditRole
+                              }
+                              className="col-span-3"
+                              onChange={(e) => setNewEmail(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            type="submit"
+                            onClick={() => {
+                              editUser(
+                                value.user.id,
+                                value.role.id,
+                                value.user,
+                                value.role
+                              );
+                            }}
+                          >
+                            Save changes
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">Add New User</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add User</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={NewUser}
+                className="col-span-3"
+                onChange={(e) => setNewUser(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                value={NewEmail}
+                className="col-span-3"
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={addUser}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
